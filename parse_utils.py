@@ -40,6 +40,14 @@ def normalize_time(clock_array):
     return (clock_array - clock_array.min()).tolist()
 
 
+def check_altitude_validity(message):
+    """
+    param: message -> sensor_msg
+    returns: True if (min_range <= value <= max_range) else False
+    """
+    return (message.range >= message.min_range) & (message.range <= message.max_range)
+
+
 def parse_flight_data(bag):
     """
     param: bag -> rosbag.Bag object
@@ -70,11 +78,8 @@ def parse_flight_data(bag):
 
     cur_state = 0
     for i in range(len(wall_time)):
-        if topics[i] == '/indoor/state':
+        if topics[i] == '/indoor/status':
             cur_state = FLIGHT_STATES[msgs[i].stateStr]
-            state_df["time"].append(wall_time[i])
-            state_df["state"].append(cur_state)
-            state_df["altitude"].append(msgs[i].altitude)
         elif topics[i] == '/imu_data':
             imu_df["time"].append(wall_time[i])
 
@@ -92,6 +97,11 @@ def parse_flight_data(bag):
             roll, pitch = from_quaternion(quat)
             imu_df["roll"].append(roll)
             imu_df["pitch"].append(pitch)
+        else:
+            if check_altitude_validity(msgs[i]):
+                state_df["time"].append(wall_time[i])
+                state_df["state"].append(cur_state)
+                state_df["altitude"].append(msgs[i].range)
 
     state_df = pd.DataFrame(state_df)
     imu_df = pd.DataFrame(imu_df)

@@ -7,6 +7,7 @@ import rosbag
 import seaborn as sns
 
 from parse_utils import *
+from plot_utils import *
 
 
 # Main class for writing summaries
@@ -36,6 +37,34 @@ class SummaryWriter:
 
         print("Done!")
 
+    def summarize_altitude_stats(self):
+        """
+        plots altitude summary boxplot and writes to a csv file
+        """
+        for k, v in self.flight_data.items():
+            print("Summarizing altitude statistics for {}".format(k))
+            root_dir = os.path.join(os.getcwd(), "results", k)
+            print("Writing results to {}".format(root_dir))
+            if not os.path.exists(root_dir):
+                os.mkdir(root_dir)
+
+            altitude_stats = v.state[v.state["state"] == FLIGHT_STATES["Airborne"]].drop(["state"], axis=1)
+
+            time_plot = os.path.join(root_dir, "altitude_vs_time.png")
+            save_time_plots(altitude_stats["altitude"], altitude_stats["time"], time_plot, "Altitude(m)")
+            print("Saved time plot!")
+
+            altitude_stats = altitude_stats.drop(["time"], axis=1)
+            summary_stats = altitude_stats.describe()
+
+            csv_file = os.path.join(root_dir, "altitude_summary.csv")
+            summary_stats.to_csv(csv_file)
+            print("CSV file written!")
+
+            boxplot_file = os.path.join(root_dir, "altitude_summary.png")
+            save_boxplots(altitude_stats, boxplot_file, "Altitude Boxplot")
+            print("Boxplot saved!")
+
 
 if __name__ == "__main__":
     """
@@ -48,3 +77,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     summary_writer = SummaryWriter(args.root_dir)
+    summary_writer.summarize_altitude_stats()
