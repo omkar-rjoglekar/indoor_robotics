@@ -1,10 +1,9 @@
 # Imports
 import glob
-import os
 import argparse
+import os
 
 import rosbag
-import seaborn as sns
 
 from parse_utils import *
 from plot_utils import *
@@ -90,19 +89,24 @@ class SummaryWriter:
                 os.mkdir(root_dir)
 
             print("Writing statistical summary to CSV file")
-            imu_acc_summary = v.imu.drop(["time", "state"], axis=1).describe()
+            imu_stats = v.imu.drop(["time", "state"], axis=1)
+            imu_acc_summary = imu_stats.describe()
             csv_file = os.path.join(root_dir, "imu_summary.csv")
             imu_acc_summary.to_csv(csv_file)
             print("Done!")
 
+            print("Plotting summary box plots")
+            boxplot_file = os.path.join(root_dir, "IMU_summary.png")
+            save_boxplots(imu_stats.drop(["yaw"], axis=1), boxplot_file, "IMU boxplot")
+            print("Done!")
+
             print("Starting K-Means clustering for {}".format(k))
             print("Optimizing cluster size using elbow method")
-            X = v.imu.drop(["time", "state"], axis=1)
-            run_elbow_method(X)
+            run_elbow_method(imu_stats)
 
             k = input("Please enter the optimal cluster size:\n")
 
-            clustering = run_kmeans(X, int(k))
+            clustering = run_kmeans(imu_stats, int(k))
             print("Clustering done!")
 
             print("Saving all IMU data time plots")
@@ -115,6 +119,17 @@ class SummaryWriter:
             print("Done!")
 
 
+def main(data_dir):
+    """
+    param: data_dir ->  location of .bag files on disk
+
+    Runs all summarizations
+    """
+    summary_writer = SummaryWriter(data_dir)
+    summary_writer.summarize_altitude_stats()
+    summary_writer.summarize_imu_stats()
+
+
 if __name__ == "__main__":
     """
     Usage: 1) python flight_summary.py  ====> For current working directory
@@ -125,6 +140,6 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--root_dir", default=None, help="Directory of rosbag file location.")
 
     args = parser.parse_args()
-    summary_writer = SummaryWriter(args.root_dir)
-    summary_writer.summarize_altitude_stats()
-    summary_writer.summarize_imu_stats()
+
+    main(args.root_dir)
+

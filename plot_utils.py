@@ -11,6 +11,14 @@ TIME_PLOTS = {"alt": "Altitude(m)",
 
 
 def save_boxplots(data, filename, title, show=False):
+    """
+    param: data -> pandas dataframe of statistical summary
+    param: filename -> title of boxplot file
+    param: title -> title of the plot
+    param: show -> (bool) show/not show the plot
+
+    Plots box plots given the data summary
+    """
     if (filename[-4:] != ".png") & (filename[-4:] != ".jpg"):
         raise ValueError("Plots can only be saved as PNG or JPG")
 
@@ -25,6 +33,16 @@ def save_boxplots(data, filename, title, show=False):
 
 
 def save_time_plots(data_y, data_x, filename, y_value, show=False, cluster_data=None):
+    """
+    param: data_y -> column to put on y-axis
+    param: data_x -> column to put on x-axis (time)
+    param: filename -> title of the file to save
+    param: y_value -> one of TIME_PLOTS keys
+    param: show ->  (bool) show/not show the plot
+    param: cluster_data -> cluster the drone states across time based on IMU data
+
+    Plots IMU data points over time colored by the appropriate cluster they belong to.
+    """
     if (filename[-4:] != ".png") & (filename[-4:] != ".jpg"):
         raise ValueError("Plots can only be saved as PNG or JPG")
     if y_value not in TIME_PLOTS.keys():
@@ -59,6 +77,12 @@ def save_time_plots(data_y, data_x, filename, y_value, show=False, cluster_data=
 
 
 def elbow_plot(ssd_list, K):
+    """
+    param: ssd_list -> list of sum of squared distances for various cluster sizes
+    param: K -> cluster sizes list
+
+    Plots the elbow curve and shows it, to determine the optimal cluster size visually
+    """
     fig = plt.figure()
     plt.plot(K, ssd_list, 'bx-')
     plt.xlabel('k')
