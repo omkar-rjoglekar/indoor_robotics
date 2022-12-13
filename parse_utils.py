@@ -24,12 +24,12 @@ FLIGHT_STATES = {'Docked': 0,
 def from_quaternion(quaternion):
     """
     param: quaternion -> tuple(x,y,z,w)
-    returns: euler orientations, roll(x) and pitch(y)
+    returns: euler orientations, roll(x), pitch(y) and yaw(z)
     """
     r = R.from_quat(quaternion)
     euler = r.as_euler('xyz', degrees=True)
 
-    return euler[0], euler[1]
+    return euler[0], euler[1], euler[2]
 
 
 def normalize_time(clock_array):
@@ -70,7 +70,8 @@ def parse_flight_data(bag):
               "linear_acc_z": [],
               "pitch": [],
               "roll": [],
-              "state": []}
+              "state": [],
+              "yaw": []}
 
     state_df = {"time": [],
                 "state": [],
@@ -94,9 +95,10 @@ def parse_flight_data(bag):
                     msgs[i].orientation.z,
                     msgs[i].orientation.w]
 
-            roll, pitch = from_quaternion(quat)
+            roll, pitch, yaw = from_quaternion(quat)
             imu_df["roll"].append(roll)
             imu_df["pitch"].append(pitch)
+            imu_df["yaw"].append(yaw)
         else:
             if check_altitude_validity(msgs[i]):
                 state_df["time"].append(wall_time[i])
