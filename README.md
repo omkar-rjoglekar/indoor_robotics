@@ -22,6 +22,8 @@ of the following 3 ways from the command line:
 - `parse_utils.py` - contains utility functions to parse the rosbag files
 - `plot_utils.py` - contains utility functions to generate all required plots
 
+NOTE - During clustering, because we need to decide the number of optimal clusters visually using the the elbow method, the code will show the elbow plot and will wait for the user to input the desired choice for "k". This functionality exists to automate the summarization.
+
 ## Directories
 - `results` - Contains all the summary plots and CSV files. 
 Contains a subdirectory for each independent flight.
