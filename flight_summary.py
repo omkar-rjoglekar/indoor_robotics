@@ -8,6 +8,7 @@ import rosbag
 from parse_utils import *
 from plot_utils import *
 from cluster import *
+from utils import *
 
 
 # Main class for writing summaries
@@ -44,13 +45,9 @@ class SummaryWriter:
         """
         for k, v in self.flight_data.items():
             print("Summarizing altitude statistics for {}".format(k))
-            root_dir = os.path.join(os.getcwd(), "results")
-            if not os.path.exists(root_dir):
-                os.mkdir(root_dir)
-            root_dir = os.path.join(root_dir, k)
+            root_dir = generate_results_directory(k)
+
             print("Writing results to {}".format(root_dir))
-            if not os.path.exists(root_dir):
-                os.mkdir(root_dir)
 
             altitude_stats = v.state[v.state["state"] == FLIGHT_STATES["Airborne"]].drop(["state"], axis=1)
 
@@ -60,7 +57,7 @@ class SummaryWriter:
             print("Done!")
 
             altitude_stats = altitude_stats.drop(["time"], axis=1)
-            summary_stats = altitude_stats.describe()
+            summary_stats = get_statistical_summary(altitude_stats)
 
             print("Writing statistical summary to CSV file")
             csv_file = os.path.join(root_dir, "altitude_summary.csv")
@@ -80,17 +77,13 @@ class SummaryWriter:
         """
         for k, v in self.flight_data.items():
             print("Summarizing IMU data statistics for {}".format(k))
-            root_dir = os.path.join(os.getcwd(), "results")
-            if not os.path.exists(root_dir):
-                os.mkdir(root_dir)
-            root_dir = os.path.join(root_dir, k)
+            root_dir = generate_results_directory(k)
             print("Writing results to {}".format(root_dir))
-            if not os.path.exists(root_dir):
-                os.mkdir(root_dir)
+
+            imu_stats = v.imu.drop(["time", "state"], axis=1)
 
             print("Writing statistical summary to CSV file")
-            imu_stats = v.imu.drop(["time", "state"], axis=1)
-            imu_acc_summary = imu_stats.describe()
+            imu_acc_summary = get_statistical_summary(imu_stats)
             csv_file = os.path.join(root_dir, "imu_summary.csv")
             imu_acc_summary.to_csv(csv_file)
             print("Done!")
